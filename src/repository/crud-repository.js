@@ -29,10 +29,25 @@ class CrudRepository {
       console.log("Something went wrong in crud repo");
     }
   }
-
-  async getAll() {
+  async countDocuments(query) {
     try {
-      const response = await this.model.find({});
+      const response = await this.model.countDocuments(query);
+      return response;
+    } catch (error) {
+      console.log("Something went wrong in crud repo");
+    }
+  }
+
+  async getAll(query) {
+    try {
+      const data = query.data ? query.data : undefined;
+      const sortby = query.sortBy ? query.sortBy : undefined;
+      const limit = query.limit ? query.limit : undefined;
+      const response = await this.model.find(data)
+            .sort(sortby)
+            .limit(limit)
+            .lean()
+            .exec();
       return response;
     } catch (error) {
       console.log("Something went wrong in crud repo");
