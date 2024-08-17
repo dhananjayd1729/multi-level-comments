@@ -13,16 +13,17 @@ class CommentService {
     }else{
       throw new Error("PostId does not exist.");
     }
-
     const comment = await this.commentRepository.create({
       content: text,
       userId: userId,
       onModel: modelType,
-      commentTable: new mongoose.Types.ObjectId(postId),
+      commentable: new mongoose.Types.ObjectId(postId.toString()),
+      postId: new mongoose.Types.ObjectId(postId.toString()),
       comments: [],
     });
     return comment;
   }
+
   async createCommentOnComment(postId, userId, commentId, text) {
     const commentid = new mongoose.Types.ObjectId(commentId.toString());
     const onComment = await this.commentRepository.get(commentid);
@@ -37,44 +38,178 @@ class CommentService {
       userId: userId,
       postId: new mongoose.Types.ObjectId(postId.toString()),
       onModel: modelType,
-      commentTable: new mongoose.Types.ObjectId(commentId),
+      commentable: commentid,
       comments: [],
     });
     onComment.comments.push(comment);
     await onComment.save();
     return comment;
   }
+  
   async getPostComments(postId, sortBy, sortOrder) {
-    const postid = new mongoose.Types.ObjectId(postId.toString());
-    const query = {
-      data : { postId: postid, onModel:"Post" },
-      sortBy : { [sortBy]: sortOrder === 'asc' ? 1 : -1 },
+    if(sortOrder == "asc"){
+      sortOrder = 1;
+    }else if(sortOrder == "desc"){
+      sortOrder = -1;
+    }else{
+      sortOrder = -1;
     }
-    const comments = await this.commentRepository.getAll(query);
-    const response = await Promise.all(
-      comments.map(async (comment) => {
-        const query = {
-          data : { onModel: 'Comment', commentTable: comment._id },
-          sortBy : { createdAt: -1 },
-          limit : 2
+    sortBy ? sortBy : createdAt;
+    const agg = [
+      {
+        $match: {
+          postId: new mongoose.Types.ObjectId(postId.toString()),
+          onModel: "Post",
+        },
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "comments",
+          foreignField: "_id",
+          as: "allReplies",
+        },
+      },
+      {
+        $addFields: {
+          sortedReplies: {
+            $sortArray: {
+              input: "$allReplies",
+              sortBy: { createdAt: -1 }
+            }
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalReplies: { $size: "$allReplies" },
+          replies: {
+            $slice: [
+              {
+                $map: {
+                  input: "$sortedReplies",
+                  as: "reply",
+                  in: {
+                    id: "$$reply._id",
+                    text: "$$reply.content",
+                    createdAt: "$$reply.createdAt",
+                  },
+                },
+              },
+              0,
+              2,
+            ],
+          },
+        },
+      },
+      { $sort: { [sortBy]: sortOrder }},
+      {
+        $project: {
+          _id: 1,
+          text: "$content",
+          createdAt: 1,
+          postId: 1,
+          parentCommentId: null,
+          modelType: 1,
+          totalReplies: 1,
+          replies: 1,
+        },
+      },
+    ];
+    const response = await this.commentRepository.aggregate(agg);
+    return response;
+  }
+  async getComments(postId, commentId, page, pageSize) {
+    const skip = (page - 1) * pageSize;
+    const agg = [
+      {
+        $match: {
+          postId: new mongoose.Types.ObjectId(postId.toString()),
+          onModel: "Post",
+        },
+      },
+      {
+        $addFields: {
+          isExpanded: { $eq: ["$_id", new mongoose.Types.ObjectId(commentId.toString())] }
         }
-        const replies = await this.commentRepository.getAll(query);
-        const totalReplies = await this.commentRepository.countDocuments(query.data);
-        return {
-          id: comment._id,
-          text: comment.content,
-          createdAt: comment.createdAt,
-          postId,
-          parentCommentId: null, // Since these are top-level comments
-          totalReplies,
-          replies: replies.map((reply) => ({
-            id: reply._id,
-            text: reply.content,
-            createdAt: reply.createdAt,
-          })),
-        };
-      })
-    );
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "comments",
+          foreignField: "_id",
+          as: "allReplies",
+        },
+      },
+      {
+        $addFields: {
+          sortedReplies: {
+            $sortArray: {
+              input: "$allReplies",
+              sortBy: { createdAt: -1 }
+            }
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalReplies: { $size: "$allReplies" },
+          replies: {
+            $cond: {
+              if: { $eq: ["$_id", new mongoose.Types.ObjectId(commentId.toString())] },
+              then: {
+                $map: {
+                  input: "$sortedReplies",
+                  as: "reply",
+                  in: {
+                    id: "$$reply._id",
+                    text: "$$reply.content",
+                    createdAt: "$$reply.createdAt",
+                  },
+                },
+              },
+              else: {
+                $slice: [
+                  {
+                    $map: {
+                      input: { $slice: ["$sortedReplies", 2] },
+                      as: "reply",
+                      in: {
+                        id: "$$reply._id",
+                        text: "$$reply.content",
+                        createdAt: "$$reply.createdAt",
+                      },
+                    },
+                  },
+                  0,
+                  2,
+                ],
+                
+              },
+            },
+          },
+        },
+      },
+      { $skip: skip },
+      { $limit: pageSize },
+      {
+        $project: {
+          _id: 1,
+          text: "$content",
+          createdAt: 1,
+          postId: 1,
+          parentCommentId: null,
+          modelType: 1,
+          totalReplies: 1,
+          replies: 1,
+          isExpanded: 1
+        },
+      },
+      {
+        $sort: { isExpanded: -1 },
+      },
+    ];
+    const response = await this.commentRepository.aggregate(agg);
     return response;
   }
 }

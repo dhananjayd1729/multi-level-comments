@@ -13,14 +13,14 @@ const commentSchema = new mongoose.Schema(
     },
     postId: {
       type: mongoose.Schema.Types.ObjectId,
-      default: null
+      required: true,
     },
     onModel: {
       type: String,
       required: true,
       enum: ["Post", "Comment"],
     },
-    commentTable: {
+    commentable: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       refPath: "onModel",

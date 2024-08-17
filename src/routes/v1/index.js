@@ -1,7 +1,7 @@
 import express from "express";
 
 import { signUp, login } from "../../controllers/auth-controller.js";
-import { createPostComment, createNestedComment, getComments } from "../../controllers/comment-controller.js"
+import { createPostComment, createNestedComment, getPostComments, getComments } from "../../controllers/comment-controller.js"
 import { authenticate } from "../../middlewares/authenticate.js";
 import { rateLimiter } from "../../middlewares/rateLimiter.js"
 
@@ -19,6 +19,7 @@ router.post("/posts/:postId/comments/:commentId/reply",
     rateLimiter, 
     createNestedComment
 );
-router.get("/posts/:postId/comments", authenticate, getComments);
+router.get("/posts/:postId/comments", authenticate, getPostComments);
+router.get("/posts/:postId/comments/:commentId", authenticate, getComments);
 
 export default router;

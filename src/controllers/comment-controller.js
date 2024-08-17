@@ -52,7 +52,7 @@ const createNestedComment = async (req, res) => {
   }
 };
 
-const getComments = async (req, res) => {
+const getPostComments = async (req, res) => {
   try {
     const { postId, sortBy, sortOrder } = req.body;
     if (!postId) {
@@ -77,9 +77,35 @@ const getComments = async (req, res) => {
     });
   }
 }; 
+const getComments = async (req, res) => {
+  try {
+    const { postId, commentId, page = 1, pageSize = 20 } = req.body;
+    if (!postId || !commentId) {
+      return res.status(400).json({ 
+        success: false,
+        data: {},
+        message: 'postId and commentId are required.' 
+      });
+    }
+    const response = await commentService.getComments(postId, commentId, page, pageSize);
+    return res.status(201).json({
+      success: true,
+      message: "Successfully expanded a parent comment for a post.",
+      data: response
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      data: {},
+      err: error,
+    });
+  }
+};
 
 export {
   createPostComment,
   createNestedComment,
+  getPostComments,
   getComments
 }
