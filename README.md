@@ -48,13 +48,7 @@ To pull and run this application using Docker, follow these steps:
 - Run the Docker compose
    ```bash
    docker-compose up -d
-**At this point you can go to postman and start hitting the apis. Once you are done with the working of apis you may stop the container and remove from your machine.**
-- Stop the container
-   ``` bash
-   docker stop commentrepo-app`
-- Remove the container
-   ``` bash
-   docker rm commentrepo-app`
+**At this point you can go to postman and start hitting the apis.**
 
 ## API Endpoints
 
@@ -253,7 +247,7 @@ To pull and run this application using Docker, follow these steps:
       "text": "Great post!",
       "userId": "user-id",
       "postId": "post-id",
-      "modelType:"Post",
+      "modelType":"Post",
       "parentCommentId":null,
       "totalReplies":4,
       "replies": [
