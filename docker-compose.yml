@@ -1,0 +1,23 @@
+version: "4.32.0"
+
+services:
+  mongo_db:
+    container_name: database_container
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo_db:/data/db
+  app:
+    build: .
+    ports: 
+      - 4000:3000
+    environment: 
+      PORT: 3000
+      SECRETKEY: comment_secret_key
+      DB_CONNECTION_STRING: mongodb://mongo_db:27017/comment
+      APP_NAME: commentrepo
+    depends_on:
+      - mongo_db
+
+volumes:
+  mongo_db: {}
