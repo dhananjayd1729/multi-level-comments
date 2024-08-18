@@ -41,10 +41,6 @@ To pull and run this application using Docker, follow these steps:
 ### Get started
 
 - Open a terminal.
-- Clone the git repository and cd into it
-  ```bash
-   git clone <this-repository-address>
-   cd multi-level-comments
 - Pull the Docker image from Docker Hub:
    ```bash
    docker pull oldmonk05/commentrepo-app:latest
