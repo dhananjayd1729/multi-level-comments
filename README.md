@@ -44,9 +44,10 @@ To pull and run this application using Docker, follow these steps:
 - Pull the Docker image from Docker Hub:
    ```bash
    docker pull oldmonk05/commentrepo-app:latest
-- Run the Docker Container
+- **Download** the docker-compose.yml File.
+- Run the Docker compose
    ```bash
-   docker run -d -p 4000:3000 --name commentrepo-app oldmonk05/commentrepo-app:latest
+   docker-compose up -d
 **At this point you can go to postman and start hitting the apis. Once you are done with the working of apis you may stop the container and remove from your machine.**
 - Stop the container
    ``` bash
@@ -199,7 +200,7 @@ To pull and run this application using Docker, follow these steps:
     "_id": "7658ha07x5140af11f8937cc56",
     "text": "Thanks!",
     "userId": "7658ha07370af11f8937cc56",
-    "onModel: "Comment",
+    "onModel": "Comment",
     "comments": [],
     "postId": "66c0fa07370af11f8937cc56",
     "createdAt": "2024‑08‑15 10:15:57",
@@ -307,7 +308,7 @@ To pull and run this application using Docker, follow these steps:
     "_id": "comment-id",
     "text": "Great post!",
     "userId": "user-id",
-    "modelType:"Post",
+    "modelType":"Post",
     "parentCommentId":null,
     "totalReplies":4,
     "postId": "post-id",
@@ -338,7 +339,7 @@ To pull and run this application using Docker, follow these steps:
     "_id": "comment-id",
     "text": "Great post!",
     "userId": "user-id",
-    "modelType:"Post",
+    "modelType":"Post",
     "parentCommentId":null,
     "totalReplies":4,
     "postId": "post-id",
@@ -359,7 +360,7 @@ To pull and run this application using Docker, follow these steps:
     "_id": "comment-id",
     "text": "Great post!",
     "userId": "user-id",
-    "modelType:"Post",
+    "modelType":"Post",
     "parentCommentId":null,
     "totalReplies":4,
     "postId": "post-id",
